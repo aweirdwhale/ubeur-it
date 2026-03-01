@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Connexion - UbeurIT</title>
+    <title>Inscription - UbeurIT</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Google Font -->
@@ -111,11 +111,13 @@
 <body>
 
 <div class="card">
-    <h1>Connexion</h1>
+    <h1>Inscription</h1>
 
+    <% if (error) { %>
+            <div class="error"><%= error %></div>
+    <% } %>
 
-
-    <form method="POST" action="/login">
+    <form method="POST" action="/register">
 
         <div class="input-group">
             <label for="chambre">Numéro de chambre</label>
@@ -125,7 +127,18 @@
                 name="chambre"
                 pattern="[0-9]{1,4}"
                 required
-                placeholder="Ex: 3301"
+                placeholder="Ex: 2301"
+            >
+        </div>
+
+        <div class="input-group">
+            <label for="prenom">Prénom</label>
+            <input
+                type="text"
+                id="prenom"
+                name="prenom"
+                required
+                placeholder="Philippe"
             >
         </div>
 
@@ -141,13 +154,14 @@
             >
         </div>
 
-        <button type="submit">Se connecter</button>
+
+        <button type="submit">S'inscrire</button>
 
     </form>
 
     <div class="footer">
-        Pas encore de compte ?
-        <a href="/register">Créer un compte</a>
+        Déjà inscrit ?
+        <a href="/login">Se connecter</a>
     </div>
 </div>
 

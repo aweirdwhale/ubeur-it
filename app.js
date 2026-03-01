@@ -9,6 +9,10 @@ const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static("public"));
 
+//layouts
+// const expressLayouts = require("express-ejs-layouts");
+// app.use(expressLayouts);
+
 app.use(
   session({
     secret: "key",
@@ -33,47 +37,54 @@ function requireAuth(req, res, next) {
 
 // affiche la page d'inscription
 app.get("/register", (req, res) => {
-  res.render("register");
+  res.render("register", { error: null });
 });
 
 app.post("/register", async (req, res) => {
-  const { prenom, chambre, mdp } = req.body;
+  const { chambre, prenom, password } = req.body;
+
+  console.log(prenom, chambre, password);
 
   // assertions de sécurité
-  if (!/^[0-9]{1,4}/.test(chambre))
+  if (!/^[0-9]{1,4}/.test(chambre)) {
+    console.log("num invalide");
     return res.send("Numéro de chambre invalide");
-  if (mdp.length < 8) return res.send("Mot de passe trop court");
+  }
+  if (password.length < 8) return res.send("Mot de passe trop court");
 
-  const hash = await bcrypt.hash(mdp, 12);
+  const hash = await bcrypt.hash(password, 12);
 
   // ajouter le bonhomme à la db
   try {
     db.prepare(
       `
       INSERT INTO members (chambre, prenom, password)
-      VALUES (?, ?)
+      VALUES (?, ?,?)
       `,
-    ).run(chambre, prenom, password);
+    ).run(chambre, prenom, hash);
 
     // inscrit, maintenant faut se connecter
     res.redirect("/login");
   } catch {
+    console.log("problème d'inscription");
     res.send("Problème lors de l'inscription.");
   }
 });
 
 // page de connection
 app.get("/login", (req, res) => {
-  res.render("login");
+  res.render("login", { error: null });
 });
 
 app.post("/login", async (req, res) => {
-  const { prenom, mdp } = req.body;
+  const { chambre, password } = req.body;
 
-  const user = db.prepare(`SELECT * FROM members WHERE prenom = ?`).get(prenom);
+  const user = db
+    .prepare(`SELECT * FROM members WHERE chambre = ?`)
+    .get(chambre);
   if (!user) return res.send("Utilisateur introuvable :(");
 
-  const valid = bcrypt.compare(mdp, user.password);
+  const valid = bcrypt.compare(password, user.password);
 
   if (!valid) return res.send("Mot de passe incorrect :(");
 
@@ -84,15 +95,15 @@ app.post("/login", async (req, res) => {
 // dashboard
 app.get("/dashboard", requireAuth, (req, res) => {
   // pour le moment rangé par du plus récent au plus vieux, on changera ça plus tard
-  const objects = db
+  const posts = db
     .prepare(
       `
-    SELECT * FROM objects ORDER BY created_at DESC
+    SELECT * FROM posts ORDER BY created_at DESC
     `,
     )
     .all();
 
-  res.render("dashboard", { objects });
+  res.render("dashboard", { posts });
 });
 
 //ajouter un objet
@@ -101,7 +112,7 @@ app.post("/add", requireAuth, (req, res) => {
 
   db.prepare(
     `
-    INSERT INTO objects (titre, description, auteur)
+    INSERT INTO posts (titre, description, auteur)
     VALUES (?,?,?)
     `,
   ).run(titre, description, req.session.userId);

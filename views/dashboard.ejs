@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<head>
+    <title>UbeurIT</title>
+</head>
+<body>
+    <!-- Search Bar -->
+    <input type="text" id="searchBar" placeholder="Rechercher..." onkeyup="filterGrid()">
+
+
+    <!-- Grid of Objects -->
+    <div id="objectGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
+      <% posts.forEach(function(obj) { %>
+        <div class="grid-item" style="border: 1px solid #ccc; padding: 16px;">
+          <h3><%= obj.title %></h3>
+          <p><%= obj.description %></p>
+        </div>
+      <% }); %>
+    </div>
+
+    <script>
+      function filterGrid() {
+        var input = document.getElementById('searchBar');
+        var filter = input.value.toLowerCase();
+        var grid = document.getElementById('objectGrid');
+        var items = grid.getElementsByClassName('grid-item');
+        for (var i = 0; i < items.length; i++) {
+          var title = items[i].getElementsByTagName('h3')[0].textContent || '';
+          var desc = items[i].getElementsByTagName('p')[0].textContent || '';
+          if (title.toLowerCase().indexOf(filter) > -1 || desc.toLowerCase().indexOf(filter) > -1) {
+            items[i].style.display = '';
+          } else {
+            items[i].style.display = 'none';
+          }
+        }
+      }
+    </script>
+</body>
