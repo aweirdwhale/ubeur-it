@@ -1,0 +1,32 @@
+{
+  "name": "ubeurit",
+  "version": "1.0.0",
+  "description": "Une application destinée aux résidents de mon internat, le principe est de partager des objets ou des services, un peu à la manière de Geev ",
+  "homepage": "https://github.com/aweirdwhale/ubeur-it#readme",
+  "bugs": {
+    "url": "https://github.com/aweirdwhale/ubeur-it/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aweirdwhale/ubeur-it.git"
+  },
+  "license": "MIT",
+  "author": "Aweirdwhale",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon app.js",
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "better-sqlite3": "^12.6.2",
+    "ejs": "^4.0.1",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "dotenv": "^17.3.1"
+  }
+}
