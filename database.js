@@ -14,7 +14,9 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     titre TEXT NOT NULL,
     desc TEXT NOT NULL,
-    auteur INTEGER,
+    auteur INTEGER NOT NULL,
+    auteur_prenom TEXT NOT NULL,
+    auteur_chambre INTEGER NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(auteur) REFERENCES members(id)
   );

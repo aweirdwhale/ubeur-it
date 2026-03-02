@@ -1,24 +1,21 @@
-<!DOCTYPE html>
-<head>
-    <title>UbeurIT</title>
-</head>
 <body>
-    <h1>Bonjour, <%= pr %></h1>
+    <h1>Mes annonces</h1>
     <!-- Search Bar -->
     <input type="text" id="searchBar" placeholder="Rechercher..." onkeyup="filterGrid()">
 
     <button onclick="window.location.href='/add'" style="margin: 16px 0; padding: 8px 16px; font-size: 16px;">Ajouter une annonce</button>
     <button onclick="window.location.href='/logout'" style="margin: 16px 0; padding: 8px 16px; font-size: 16px;">Se déconnecter</button>
-    <button onclick="window.location.href='/mes-annonces'" style="margin: 16px 0; padding: 8px 16px; font-size: 16px;">Mes annonces</button>
+    <button onclick="window.location.href='/dashboard'" style="margin: 16px 0; padding: 8px 16px; font-size: 16px;">Toutes les annonces</button>
 
     <!-- Grid of Objects -->
     <div id="objectGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
-      <% posts.forEach(function(obj) { %>
+      <% mesPosts.posts.forEach(function(obj) { %>
         <div class="grid-item" style="border: 1px solid #ccc; padding: 16px;">
           <h3><%= obj.titre %></h3>
           <p><%= obj.desc %></p>
-          <%console.log(obj.auteur_chambre);%>
-          <p>Auteur : <%= obj.auteur_prenom %> (Chambre : <%= obj.auteur_chambre %>)</p>
+          <form method="POST" action="/delete/<%= obj.id %>">
+              <button type="submit">Supprimer</button>
+          </form>
         </div>
       <% }); %>
     </div>

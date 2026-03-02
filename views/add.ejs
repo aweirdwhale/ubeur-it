@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<head>
+    <title>UbeurIT - Poster une annonce</title>
+</head>
+<body>
+    <form action="/add" method="post">
+        <h1>Poster une annonce</h1>
+        <label for="titre">Titre :</label><br>
+        <input type="text" id="titre" name="titre" required><br><br>
+        <label for="desc">Description :</label><br>
+        <textarea id="desc" name="desc" rows="5" cols="40" required></textarea><br><br>
+        <label for="image">Image :</label><br>
+        <input type="file" id="image" name="image" accept="image/*"><br><br>
+
+        <button type="submit">Poster l'annonce</button>
+    </form>
+</body>
