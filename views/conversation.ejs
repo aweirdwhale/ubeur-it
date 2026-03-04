@@ -1,0 +1,15 @@
+<h2>Conversation</h2>
+
+<% messages.forEach(msg => { %>
+  <div style="margin-bottom:10px">
+    <strong>
+      <%= msg.sender_id === userId ? "Moi" : "L'autre" %>
+    </strong>
+    <p><%= msg.content %></p>
+  </div>
+<% }) %>
+
+<form method="POST" action="/messages/<%= conversationId %>">
+  <input name="content" required>
+  <button>Envoyer</button>
+</form>

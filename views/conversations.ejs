@@ -1,0 +1,14 @@
+<h2>Mes conversations</h2>
+<button onclick="window.location.href='/dashboard'" style="margin: 16px 0; padding: 8px 16px; font-size: 16px;">Annonces</button>
+
+<% if (conversationsWithNames.length === 0) { %>
+  <p>Aucune conversation en cours</p>
+<% } %>
+
+<% conversationsWithNames.forEach(convo => { %>
+  <div style="margin-bottom: 15px;">
+    <a href="/messages/<%= convo.id %>">
+      <%= convo.other_prenom %>
+    </a>
+  </div>
+<% }) %>

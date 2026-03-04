@@ -1,4 +1,6 @@
-const client = require("./bot");
+// const client = require("./bot");
+// process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+// const { EmbedBuilder } = require("discord.js");
 
 const express = require("express");
 const session = require("express-session");
@@ -13,6 +15,7 @@ app.use(express.static("public"));
 
 //layouts
 const expressLayouts = require("express-ejs-layouts");
+const { render } = require("ejs");
 app.use(expressLayouts);
 
 app.use(
@@ -81,7 +84,7 @@ app.post("/register", async (req, res) => {
       )
       .get();
 
-    const channel = await client.channels.fetch("1478139386368364746");
+    // const channel = await client.channels.fetch("1478139386368364746");
 
     await channel
       .setName(`👶  Membres : ${totalMembers.total}`)
@@ -142,7 +145,8 @@ app.get("/dashboard", requireAuth, (req, res) => {
     .all();
 
   const pr = req.session.user;
-  res.render("dashboard", { posts, pr });
+  const id = req.session.userId;
+  res.render("dashboard", { posts, pr, id });
 });
 
 app.get("/add", requireAuth, (req, res) => {
@@ -168,19 +172,28 @@ app.post("/add", requireAuth, async (req, res) => {
     )
     .get();
 
-  const channel = await client.channels.fetch("1478138536841449563");
+  // const channel = await client.channels.fetch("1478138536841449563");
   // await channel.setName("ANNONCES-", totalAnnonces.total);
-  await channel
-    .setName(`📦 Annonces: ${totalAnnonces.total}`)
-    .then((newChannel) =>
-      console.log(`Channel's new name is ${newChannel.name}`),
-    )
-    .catch(console.error);
+  // await channel
+  //   .setName(`📦 Annonces: ${totalAnnonces.total}`)
+  //   .then((newChannel) =>
+  //     console.log(`Channel's new name is ${newChannel.name}`),
+  //   )
+  //   .catch(console.error);
 
-  await channel
-    .send("hello!")
-    .then((message) => console.log(`Sent message: ${message.content}`))
-    .catch(console.error);
+  // // const channel2 = await client.channels.fetch("1478146644217303052");
+
+  // const embed = new EmbedBuilder()
+  //   .setColor(0x3498db)
+  //   .setTitle("📦 Nouvelle annonce")
+  //   .setDescription(`**${titre}**\n${desc}`)
+  //   .addFields(
+  //     { name: "👤 Auteur", value: req.session.user, inline: true },
+  //     { name: "🏠 Chambre", value: req.session.room.toString(), inline: true },
+  //   )
+  //   .setTimestamp();
+
+  // await channel2.send({ embeds: [embed] });
 
   console.log("Salon renommé !", totalAnnonces.total);
 
@@ -210,6 +223,7 @@ app.get("/logout", (req, res) => {
   res.redirect("/login");
 });
 
+// supprimer une annonce
 app.post("/delete/:id", requireAuth, (req, res) => {
   const objetId = req.params.id;
 
@@ -237,6 +251,173 @@ app.post("/delete/:id", requireAuth, (req, res) => {
   ).run(objetId);
 
   res.redirect("/mes-annonces");
+});
+
+// app.post("/book/:id", requireAuth, (req, res) => {
+//   res.redirect("/book", {});
+// });
+
+// app.get("/book/:id", requireAuth, (res, req) => {
+//   const objetId = req.params.id;
+
+//   const objet = db
+//     .prepare(
+//       `
+//         SELECT * FROM posts WHERE id = ?
+//     `,
+//     )
+//     .get(objetId);
+
+//   const proprio = db
+//     .prepare(
+//       `
+//     SELECT * FROM members WHERE posts JOIN ON members.id = posts.id
+//     `,
+//     )
+//     .get(proprio);
+
+//   if (!objet) {
+//     return res.redirect("/dashboard");
+//   }
+
+//   // on envoie un message au proprio
+//   console.log(objet, proprio);
+
+//   res.render("/book", { objet, proprio });
+// });
+
+app.post("/book/:id", requireAuth, (req, res) => {
+  const post = db
+    .prepare(
+      `
+    SELECT * FROM posts WHERE id = ?
+  `,
+    )
+    .get(req.params.id);
+
+  if (!post) return res.redirect("/dashboard");
+
+  if (post.auteur === req.session.userId)
+    return res.send("Tu ne peux pas réserver ton propre objet");
+
+  // Vérifie si conversation existe déjà
+  let convo = db
+    .prepare(
+      `
+    SELECT * FROM chats
+    WHERE (user1 = ? AND user2 = ?)
+       OR (user1 = ? AND user2 = ?)
+  `,
+    )
+    .get(req.session.userId, post.auteur, post.auteur, req.session.userId);
+
+  console.log(convo);
+  if (!convo) {
+    const result = db
+      .prepare(
+        `
+      INSERT INTO chats (user1, user2)
+      VALUES (?, ?)
+    `,
+      )
+      .run(req.session.userId, post.auteur);
+
+    convo = { id: result.lastInsertRowid };
+  }
+  console.log(convo.id);
+
+  // Message automatique
+  db.prepare(
+    `
+    INSERT INTO messages (chat_id, sender_id, content)
+    VALUES (?, ?, ?)
+  `,
+  ).run(convo.id, req.session.userId, "Je suis intéressé par ton objet !");
+
+  res.redirect(`/messages/${convo.id}`);
+});
+
+app.get("/messages/:id", requireAuth, (req, res) => {
+  console.log(req.params.id);
+  const userId = req.session.userId;
+  const conversationId = req.params.id;
+  const messages = db
+    .prepare(
+      `
+    SELECT * FROM messages
+    WHERE chat_id = ?
+    ORDER BY created_at ASC
+  `,
+    )
+    .all(conversationId);
+
+  res.render("conversation", { messages, userId, conversationId });
+});
+
+app.post("/messages/:id", requireAuth, (req, res) => {
+  const { content } = req.body;
+  const conversationId = req.params.id;
+
+  if (!content || content.trim() === "") {
+    return res.redirect(`/messages/${conversationId}`);
+  }
+
+  // Vérifie que l'utilisateur fait partie de la conversation
+  const convo = db
+    .prepare(
+      `
+    SELECT * FROM chats
+    WHERE id = ?
+  `,
+    )
+    .get(conversationId);
+
+  if (!convo) return res.redirect("/dashboard");
+
+  if (
+    convo.user1 !== req.session.userId &&
+    convo.user2 !== req.session.userId
+  ) {
+    return res.status(403).send("Non autorisé");
+  }
+
+  db.prepare(
+    `
+    INSERT INTO messages (chat_id, sender_id, content)
+    VALUES (?, ?, ?)
+  `,
+  ).run(conversationId, req.session.userId, content);
+
+  res.redirect(`/messages/${conversationId}`);
+});
+
+app.get("/conversations", requireAuth, (req, res) => {
+  const conversations = db
+    .prepare(
+      `
+    SELECT * FROM chats
+    WHERE user1 = ? OR user2 = ?
+    ORDER BY created_at DESC
+  `,
+    )
+    .all(req.session.userId, req.session.userId);
+
+  const conversationsWithNames = conversations.map((convo) => {
+    const idDuMecEnFace =
+      convo.user1 === req.session.userId ? convo.user2 : convo.user1;
+
+    const mecEnFace = db
+      .prepare(`SELECT prenom FROM members WHERE id = ?`)
+      .get(idDuMecEnFace);
+
+    return {
+      ...convo,
+      other_prenom: mecEnFace?.prenom,
+    };
+  });
+
+  console.log(conversationsWithNames);
+  res.render("conversations", { conversationsWithNames });
 });
 
 app.get("/", (req, res) => {
