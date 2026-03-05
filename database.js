@@ -2,11 +2,13 @@ const Database = require("better-sqlite3");
 const db = new Database("data.db");
 
 db.exec(`
+
   CREATE TABLE IF NOT EXISTS members (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     chambre INTEGER NOT NULL,
     prenom TEXT NOT NULL,
     password TEXT NOT NULL,
+    pdp TEXT DEFAULT '/uploads/default.png' ,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
@@ -17,6 +19,7 @@ db.exec(`
     auteur INTEGER NOT NULL,
     auteur_prenom TEXT NOT NULL,
     auteur_chambre INTEGER NOT NULL,
+    image TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(auteur) REFERENCES members(id)
   );

@@ -1,40 +1,166 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mes annonces</title>
+
+<style>
+:root {
+  --primary: #5865F2;
+  --primary-light: #EEF0FF;
+  --background: #f5f7fb;
+  --card: #ffffff;
+  --text: #1f2937;
+  --text-light: #6b7280;
+  --border: #e5e7eb;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Inter, sans-serif;
+}
+
+body {
+  background: var(--background);
+  padding: 20px;
+}
+
+h1 {
+  color: var(--text);
+  margin-bottom: 16px;
+}
+
+.top-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.top-bar input[type="text"] {
+  flex: 1;
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: 25px;
+  outline: none;
+}
+
+.top-bar button {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 25px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.top-bar button:hover {
+  opacity: 0.85;
+}
+
+#objectGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.grid-item {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.2s;
+}
+
+.grid-item:hover {
+  transform: translateY(-2px);
+}
+
+.grid-item h3 {
+  color: var(--text);
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+.grid-item p {
+  color: var(--text-light);
+  margin-bottom: 12px;
+  font-size: 14px;
+  flex: 1;
+}
+
+.grid-item form button {
+  background: var(--primary-light);
+  color: var(--text);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.grid-item form button:hover {
+  background: var(--primary);
+  color: white;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .top-bar {
+    flex-direction: column;
+  }
+}
+</style>
+</head>
+
 <body>
-    <h1>Mes annonces</h1>
-    <!-- Search Bar -->
-    <input type="text" id="searchBar" placeholder="Rechercher..." onkeyup="filterGrid()">
 
-    <button onclick="window.location.href='/add'" style="margin: 16px 0; padding: 8px 16px; font-size: 16px;">Ajouter une annonce</button>
-    <button onclick="window.location.href='/logout'" style="margin: 16px 0; padding: 8px 16px; font-size: 16px;">Se déconnecter</button>
-    <button onclick="window.location.href='/dashboard'" style="margin: 16px 0; padding: 8px 16px; font-size: 16px;">Toutes les annonces</button>
+<h1>Mes annonces</h1>
 
-    <!-- Grid of Objects -->
-    <div id="objectGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
-      <% mesPosts.posts.forEach(function(obj) { %>
-        <div class="grid-item" style="border: 1px solid #ccc; padding: 16px;">
-          <h3><%= obj.titre %></h3>
-          <p><%= obj.desc %></p>
-          <form method="POST" action="/delete/<%= obj.id %>">
-              <button type="submit">Supprimer</button>
-          </form>
-        </div>
-      <% }); %>
+<div class="top-bar">
+  <input type="text" id="searchBar" placeholder="Rechercher..." onkeyup="filterGrid()">
+  <button onclick="window.location.href='/add'">Ajouter</button>
+  <button onclick="window.location.href='/logout'">Se déconnecter</button>
+  <button onclick="window.location.href='/dashboard'">Toutes les annonces</button>
+</div>
+
+<div id="objectGrid">
+  <% mesPosts.posts.forEach(function(obj) { %>
+    <div class="grid-item">
+      <h3><%= obj.titre %></h3>
+      <p><%= obj.desc %></p>
+      <form method="POST" action="/delete/<%= obj.id %>">
+        <button type="submit">Supprimer</button>
+      </form>
     </div>
+  <% }); %>
+</div>
 
-    <script>
-      function filterGrid() {
-        var input = document.getElementById('searchBar');
-        var filter = input.value.toLowerCase();
-        var grid = document.getElementById('objectGrid');
-        var items = grid.getElementsByClassName('grid-item');
-        for (var i = 0; i < items.length; i++) {
-          var title = items[i].getElementsByTagName('h3')[0].textContent || '';
-          var desc = items[i].getElementsByTagName('p')[0].textContent || '';
-          if (title.toLowerCase().indexOf(filter) > -1 || desc.toLowerCase().indexOf(filter) > -1) {
-            items[i].style.display = '';
-          } else {
-            items[i].style.display = 'none';
-          }
-        }
-      }
-    </script>
+<script>
+function filterGrid() {
+  var input = document.getElementById('searchBar');
+  var filter = input.value.toLowerCase();
+  var grid = document.getElementById('objectGrid');
+  var items = grid.getElementsByClassName('grid-item');
+  for (var i = 0; i < items.length; i++) {
+    var title = items[i].getElementsByTagName('h3')[0].textContent || '';
+    var desc = items[i].getElementsByTagName('p')[0].textContent || '';
+    if (title.toLowerCase().indexOf(filter) > -1 || desc.toLowerCase().indexOf(filter) > -1) {
+      items[i].style.display = '';
+    } else {
+      items[i].style.display = 'none';
+    }
+  }
+}
+</script>
+
 </body>
+</html>

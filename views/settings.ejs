@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paramètres</title>
+
+<style>
+:root {
+  --primary: #5865F2;
+  --primary-light: #EEF0FF;
+  --background: #f5f7fb;
+  --card: #ffffff;
+  --text: #1f2937;
+  --text-light: #6b7280;
+  --border: #e5e7eb;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Inter, sans-serif;
+}
+
+body {
+  background: var(--background);
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+.settings-container {
+  background: var(--card);
+  padding: 32px;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  width: 100%;
+  max-width: 500px;
+}
+
+h1 {
+  color: var(--text);
+  margin-bottom: 24px;
+  font-size: 22px;
+  text-align: center;
+}
+
+label {
+  color: var(--text);
+  font-size: 14px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+input[type="file"] {
+  width: 100%;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+
+button {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.2s;
+  margin-right: 10px;
+}
+
+button:hover {
+  opacity: 0.85;
+}
+
+.top-buttons {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 24px;
+  gap: 10px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .settings-container {
+    padding: 20px;
+  }
+  button {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 12px;
+  }
+  .top-buttons {
+    flex-direction: column;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="settings-container">
+  <form method="POST" action="/settings" enctype="multipart/form-data">
+    <h1>Paramètres</h1>
+
+    <div class="top-buttons">
+      <button type="button" onclick="window.location.href='/dashboard'">Toutes les annonces</button>
+    </div>
+
+    <label for="image">Photo de profil :</label>
+    <input type="file" name="image" accept="image/*" required>
+
+    <button type="submit">Enregistrer</button>
+  </form>
+</div>
+
+</body>
+</html>

@@ -1,33 +1,145 @@
-<body>
-    <button onclick="window.location.href='/dashboard'" style="margin: 16px 0; padding: 8px 16px; font-size: 16px;">Toutes les annonces</button>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title><%= objet.titre %></title>
 
-    <!-- Grid of Objects -->
-    <div id="objectGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
-      <% posts.annonce.forEach(function(obj) { %>
-          <h3><%= obj.titre %></h3>
-          <p><%= obj.desc %></p>
-          <%console.log(obj.auteur_chambre);%>
-          <p>Auteur : <%= obj.auteur_prenom %> (Chambre : <%= obj.auteur_chambre %>)</p>
-          <p>Posté le <%= obj.created_at%>%> </p>
-        </div>
-      <% }); %>
+<style>
+:root {
+  --primary: #5865F2;
+  --primary-light: #EEF0FF;
+  --background: #f5f7fb;
+  --card: #ffffff;
+  --text: #1f2937;
+  --text-light: #6b7280;
+  --border: #e5e7eb;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Inter, sans-serif;
+}
+
+body {
+  background: var(--background);
+  padding: 30px;
+  display: flex;
+  justify-content: center;
+}
+
+.container {
+  width: 100%;
+  max-width: 900px;
+}
+
+.back-btn {
+  background: var(--primary-light);
+  color: var(--primary);
+  border: 1px solid var(--border);
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  cursor: pointer;
+  margin-bottom: 25px;
+  transition: 0.2s ease;
+}
+
+.back-btn:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.card {
+  background: var(--card);
+  border-radius: 18px;
+  padding: 25px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.card img {
+  width: 100%;
+  max-height: 400px;
+  object-fit: cover;
+  border-radius: 14px;
+}
+
+.card h3 {
+  font-size: 22px;
+}
+
+.meta {
+  color: var(--text-light);
+  font-size: 14px;
+}
+
+.reserve-btn {
+  margin-top: 15px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 14px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.reserve-btn:hover {
+  opacity: 0.85;
+}
+
+@media (max-width: 600px) {
+  body {
+    padding: 15px;
+  }
+
+  .card {
+    padding: 18px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <button class="back-btn" onclick="window.location.href='/dashboard'">
+    ← Toutes les annonces
+  </button>
+
+  <div class="card">
+
+    <img src="<%= objet.image || '/uploads/default.png' %>">
+
+    <h3><%= objet.titre %></h3>
+
+    <p><%= objet.desc %></p>
+
+    <div class="meta">
+      Auteur : <strong><%= objet.auteur_prenom %></strong>
+      (Chambre <%= objet.auteur_chambre %>)
     </div>
 
-    <script>
-      function filterGrid() {
-        var input = document.getElementById('searchBar');
-        var filter = input.value.toLowerCase();
-        var grid = document.getElementById('objectGrid');
-        var items = grid.getElementsByClassName('grid-item');
-        for (var i = 0; i < items.length; i++) {
-          var title = items[i].getElementsByTagName('h3')[0].textContent || '';
-          var desc = items[i].getElementsByTagName('p')[0].textContent || '';
-          if (title.toLowerCase().indexOf(filter) > -1 || desc.toLowerCase().indexOf(filter) > -1) {
-            items[i].style.display = '';
-          } else {
-            items[i].style.display = 'none';
-          }
-        }
-      }
-    </script>
+    <div class="meta">
+      Posté le <%= new Date(objet.created_at).toLocaleString() %>
+    </div>
+
+    <form method="POST" action="/reserve/<%= objet.id %>">
+      <button class="reserve-btn" type="submit">
+        📦 Réserver
+      </button>
+    </form>
+
+  </div>
+
+</div>
+
 </body>
+</html>

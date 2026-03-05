@@ -2,6 +2,10 @@
 // process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 // const { EmbedBuilder } = require("discord.js");
 
+// images
+const multer = require("multer");
+const path = require("path");
+
 const express = require("express");
 const session = require("express-session");
 const bcrypt = require("bcrypt");
@@ -39,6 +43,33 @@ function requireAuth(req, res, next) {
 
   next();
 }
+
+// configuration de multer pour upload images :
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "public/uploads/");
+  },
+  filename: function (req, file, cb) {
+    const uniqueName = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueName + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // max 5MB
+  fileFilter: function (req, file, cb) {
+    const allowed = /jpeg|jpg|png|webp/;
+    const ext = allowed.test(path.extname(file.originalname).toLowerCase());
+    const mime = allowed.test(file.mimetype);
+
+    if (ext && mime) {
+      cb(null, true);
+    } else {
+      cb(new Error("Images uniquement !"));
+    }
+  },
+});
 
 // affiche la page d'inscription
 app.get("/register", (req, res) => {
@@ -86,17 +117,17 @@ app.post("/register", async (req, res) => {
 
     // const channel = await client.channels.fetch("1478139386368364746");
 
-    await channel
-      .setName(`👶  Membres : ${totalMembers.total}`)
-      .then((newChannel) =>
-        console.log(`Channel's new name is ${newChannel.name}`),
-      )
-      .catch(console.error);
+    // await channel
+    //   .setName(`👶  Membres : ${totalMembers.total}`)
+    //   .then((newChannel) =>
+    //     console.log(`Channel's new name is ${newChannel.name}`),
+    //   )
+    //   .catch(console.error);
 
-    await channel
-      .send("hello!")
-      .then((message) => console.log(`Sent message: ${message.content}`))
-      .catch(console.error);
+    // await channel
+    //   .send("hello!")
+    //   .then((message) => console.log(`Sent message: ${message.content}`))
+    //   .catch(console.error);
 
     console.log("Salon renommé !", totalMembers.total);
 
@@ -146,23 +177,43 @@ app.get("/dashboard", requireAuth, (req, res) => {
 
   const pr = req.session.user;
   const id = req.session.userId;
-  res.render("dashboard", { posts, pr, id });
+
+  const pdp = db
+    .prepare(
+      `
+      SELECT pdp FROM members WHERE id = ?
+    `,
+    )
+    .get(id);
+
+  console.log("pdp : ", pdp);
+  res.render("dashboard", { posts, pr, id, pdp });
 });
 
 app.get("/add", requireAuth, (req, res) => {
   res.render("add");
 });
 //ajouter un objet
-app.post("/add", requireAuth, async (req, res) => {
-  console.log(req.body);
+app.post("/add", requireAuth, upload.single("image"), async (req, res) => {
+  console.log(req.file);
+  const imagePath = "/uploads/" + req.file.filename;
+
+  console.log(imagePath);
   const { titre, desc } = req.body;
 
   db.prepare(
     `
-    INSERT INTO posts (titre, desc, auteur, auteur_prenom, auteur_chambre)
-    VALUES (?,?,?,?,?)
+    INSERT INTO posts (titre, desc, auteur, auteur_prenom, auteur_chambre, image)
+    VALUES (?,?,?,?,?,?)
     `,
-  ).run(titre, desc, req.session.userId, req.session.user, req.session.room);
+  ).run(
+    titre,
+    desc,
+    req.session.userId,
+    req.session.user,
+    req.session.room,
+    imagePath,
+  );
 
   const totalAnnonces = db
     .prepare(
@@ -257,41 +308,35 @@ app.post("/delete/:id", requireAuth, (req, res) => {
 //   res.redirect("/book", {});
 // });
 
-// app.get("/book/:id", requireAuth, (res, req) => {
-//   const objetId = req.params.id;
+app.get("/book/:id", requireAuth, (req, res) => {
+  console.log(req.params.id);
 
-//   const objet = db
-//     .prepare(
-//       `
-//         SELECT * FROM posts WHERE id = ?
-//     `,
-//     )
-//     .get(objetId);
+  const objetId = req.params.id;
+  console.log(objetId);
 
-//   const proprio = db
-//     .prepare(
-//       `
-//     SELECT * FROM members WHERE posts JOIN ON members.id = posts.id
-//     `,
-//     )
-//     .get(proprio);
+  const objet = db
+    .prepare(
+      `
+        SELECT * FROM posts WHERE id = ?
+    `,
+    )
+    .get(objetId);
 
-//   if (!objet) {
-//     return res.redirect("/dashboard");
-//   }
+  if (!objet) {
+    return res.redirect("/dashboard");
+  }
 
-//   // on envoie un message au proprio
-//   console.log(objet, proprio);
+  console.log(objet);
 
-//   res.render("/book", { objet, proprio });
-// });
+  res.render("book", { objet });
+});
 
-app.post("/book/:id", requireAuth, (req, res) => {
+app.post("/reserve/:id", requireAuth, (req, res) => {
   const post = db
     .prepare(
       `
-    SELECT * FROM posts WHERE id = ?
-  `,
+      SELECT * FROM posts WHERE id = ?
+    `,
     )
     .get(req.params.id);
 
@@ -304,10 +349,10 @@ app.post("/book/:id", requireAuth, (req, res) => {
   let convo = db
     .prepare(
       `
-    SELECT * FROM chats
-    WHERE (user1 = ? AND user2 = ?)
-       OR (user1 = ? AND user2 = ?)
-  `,
+      SELECT * FROM chats
+      WHERE (user1 = ? AND user2 = ?)
+         OR (user1 = ? AND user2 = ?)
+    `,
     )
     .get(req.session.userId, post.auteur, post.auteur, req.session.userId);
 
@@ -316,9 +361,9 @@ app.post("/book/:id", requireAuth, (req, res) => {
     const result = db
       .prepare(
         `
-      INSERT INTO chats (user1, user2)
-      VALUES (?, ?)
-    `,
+        INSERT INTO chats (user1, user2)
+        VALUES (?, ?)
+      `,
       )
       .run(req.session.userId, post.auteur);
 
@@ -329,18 +374,50 @@ app.post("/book/:id", requireAuth, (req, res) => {
   // Message automatique
   db.prepare(
     `
-    INSERT INTO messages (chat_id, sender_id, content)
-    VALUES (?, ?, ?)
-  `,
-  ).run(convo.id, req.session.userId, "Je suis intéressé par ton objet !");
+      INSERT INTO messages (chat_id, sender_id, content)
+      VALUES (?, ?, ?)
+    `,
+  ).run(convo.id, req.session.userId, "Est interessé par une de tes annonces.");
 
   res.redirect(`/messages/${convo.id}`);
 });
 
 app.get("/messages/:id", requireAuth, (req, res) => {
-  console.log(req.params.id);
   const userId = req.session.userId;
   const conversationId = req.params.id;
+
+  // Récupérer la conversation
+  const conversation = db
+    .prepare(
+      `
+    SELECT * FROM chats WHERE id = ?
+  `,
+    )
+    .get(conversationId);
+
+  if (!conversation) {
+    return res.redirect("/dashboard");
+  }
+
+  // Vérifier que l'utilisateur fait partie de la conversation
+  if (conversation.user1 !== userId && conversation.user2 !== userId) {
+    return res.status(403).send("Accès interdit");
+  }
+
+  // Trouver l'ID de l'interlocuteur
+  const otherUserId =
+    conversation.user1 === userId ? conversation.user2 : conversation.user1;
+
+  // Récupérer son prénom
+  const otherUser = db
+    .prepare(
+      `
+    SELECT prenom, pdp FROM members WHERE id = ?
+  `,
+    )
+    .get(otherUserId);
+
+  // Récupérer les messages
   const messages = db
     .prepare(
       `
@@ -351,7 +428,14 @@ app.get("/messages/:id", requireAuth, (req, res) => {
     )
     .all(conversationId);
 
-  res.render("conversation", { messages, userId, conversationId });
+  // Envoyer tout à la page
+  res.render("conversation", {
+    messages,
+    userId,
+    conversationId,
+    mecEnFace: otherUser?.prenom,
+    teteDuMecEnFace: otherUser?.pdp,
+  });
 });
 
 app.post("/messages/:id", requireAuth, (req, res) => {
@@ -418,6 +502,30 @@ app.get("/conversations", requireAuth, (req, res) => {
 
   console.log(conversationsWithNames);
   res.render("conversations", { conversationsWithNames });
+});
+
+app.get("/settings", (req, res) => {
+  res.render("settings");
+});
+
+app.post("/settings", requireAuth, upload.single("image"), async (req, res) => {
+  if (!req.file) {
+    return res.send("Aucune image envoyée");
+  }
+
+  const imagePath = "/uploads/" + req.file.filename;
+
+  db.prepare(
+    `
+    UPDATE members
+    SET pdp = ?
+    WHERE id = ?
+  `,
+  ).run(imagePath, req.session.userId);
+
+  res.redirect("/dashboard");
+
+  console.log("pdp :", imagePath);
 });
 
 app.get("/", (req, res) => {

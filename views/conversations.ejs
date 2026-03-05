@@ -1,14 +1,157 @@
-<h2>Mes conversations</h2>
-<button onclick="window.location.href='/dashboard'" style="margin: 16px 0; padding: 8px 16px; font-size: 16px;">Annonces</button>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mes conversations</title>
 
-<% if (conversationsWithNames.length === 0) { %>
-  <p>Aucune conversation en cours</p>
-<% } %>
+<style>
+:root {
+  --primary: #5865F2;
+  --primary-light: #EEF0FF;
+  --background: #f5f7fb;
+  --card: #ffffff;
+  --text: #1f2937;
+  --text-light: #6b7280;
+  --border: #e5e7eb;
+}
 
-<% conversationsWithNames.forEach(convo => { %>
-  <div style="margin-bottom: 15px;">
-    <a href="/messages/<%= convo.id %>">
-      <%= convo.other_prenom %>
-    </a>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Inter, sans-serif;
+}
+
+body {
+  background: var(--background);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+}
+
+.container {
+  width: 100%;
+  max-width: 900px;
+  background: var(--card);
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.header h2 {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.back-btn {
+  margin-left: auto;
+  background: var(--primary-light);
+  color: var(--primary);
+  border: 1px solid var(--border);
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.convo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.convo-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--primary-light);
+  text-decoration: none;
+  color: var(--text);
+  transition: 0.2s ease;
+}
+
+.convo-card:hover {
+  background: var(--primary);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.convo-card img {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.empty {
+  color: var(--text-light);
+  margin-top: 20px;
+  font-size: 14px;
+}
+
+/* Responsive */
+
+@media (max-width: 600px) {
+  .container {
+    padding: 15px;
+  }
+
+  .convo-card {
+    padding: 12px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <h2>💬 Mes conversations</h2>
+    <button class="back-btn" onclick="window.location.href='/dashboard'">
+      ← Annonces
+    </button>
   </div>
-<% }) %>
+
+  <% if (conversationsWithNames.length === 0) { %>
+    <p class="empty">Aucune conversation en cours</p>
+  <% } %>
+
+  <div class="convo-list">
+    <% conversationsWithNames.forEach(convo => { %>
+
+      <a class="convo-card" href="/messages/<%= convo.id %>">
+
+        <img src="<%= convo.other_pdp || '/uploads/default.png' %>">
+
+        <div>
+          <div style="font-weight:600;">
+            <%= convo.other_prenom %>
+          </div>
+        </div>
+
+      </a>
+
+    <% }) %>
+  </div>
+
+</div>
+
+</body>
+</html>
